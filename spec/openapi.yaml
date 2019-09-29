@@ -1,0 +1,374 @@
+openapi: 3.0.2
+
+info:
+  title: OpenAPI Microserver Sample
+  description: 'Sample code to learn openapi'
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.5.0
+
+tags:
+- name: users
+  description: Operations about user
+  externalDocs:
+    description: Find out more about our store
+    url: https://github.com/OAI/OpenAPI-Specification
+- name: books
+  description: Operations about book
+- name: ping
+  description: returns pong response without auth
+
+servers:
+- url: http://localhost
+  description: Development
+
+paths:
+  /users/list:
+    get:
+      description: Returns a list of users
+      parameters:
+      - $ref: '#/components/parameters/formatParam'
+      operationId: getUsers
+      responses:
+        '200':
+          description: Successfully returned a list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+            text/tab-separated-values:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+                format: binary
+
+  /users/create:
+    post:
+      tags:
+      - users
+      summary: Create user
+      description: This can only be done by the logged in user.
+      operationId: createUser
+      requestBody:
+        description: Created user object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '201':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: int64
+        '409':
+          description: Conflict user ID
+          content: {}
+
+  /users/user/{id}:
+    get:
+      tags:
+      - users
+      summary: Get user by user id
+      operationId: getUserById
+      parameters:
+      - name: id
+        in: path
+        description: 'The id that needs to be fetched. Use 1 for testing. '
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          description: Invalid username supplied
+          content: {}
+        404:
+          description: User not found
+          content: {}
+
+    put:
+      tags:
+      - users
+      summary: Updated user
+      description: This can only be done by the logged in user.
+      operationId: updateUser
+      parameters:
+      - name: id
+        in: path
+        description: name that need to be updated
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        description: Updated user object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        400:
+          description: Invalid user supplied
+          content: {}
+        404:
+          description: User not found
+          content: {}
+
+    delete:
+      tags:
+      - user
+      summary: Delete user
+      description: This can only be done by the logged in user.
+      operationId: deleteUser
+      parameters:
+      - name: id
+        in: path
+        description: The name that needs to be deleted
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        400:
+          description: Invalid username supplied
+          content: {}
+        404:
+          description: User not found
+          content: {}
+
+  /books/list/{frequency}:
+    get:
+      description: Returns a list of books
+      operationId: getBooks
+      parameters:
+      - $ref: '#/components/parameters/frequencyPath'
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+      - $ref: '#/components/parameters/formatParam'
+      responses:
+        '200':
+          description: Successfully returned a list of books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Book'
+
+  /books/create:
+    post:
+      tags:
+      - books
+      summary: Create book
+      description: This can only be done by the logged in user.
+      operationId: createBook
+      requestBody:
+        description: Created book object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Book'
+        required: true
+      responses:
+        default:
+          description: successful operation
+          content: {}
+
+  /books/book/{id}:
+    get:
+      tags:
+      - books
+      summary: Get book by book id
+      operationId: getBookById
+      parameters:
+      - name: id
+        in: path
+        description: 'The id that needs to be fetched. Use 1 for testing. '
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        400:
+          description: Invalid username supplied
+          content: {}
+        404:
+          description: User not found
+          content: {}
+
+  /ping:
+    get:
+      description: Returns pong message
+      operationId: getPing
+      responses:
+        '200':
+          description: pong message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /stream/byte:
+    get:
+      description: Returns streams
+      parameters:
+      - $ref: '#/components/parameters/streamFormatParam'
+      operationId: getByte
+      responses:
+        '200':
+          description: streams
+          content:
+            text/tab-separated-values:
+              schema:
+                $ref: '#/components/schemas/ByteStream'
+            text/csv:
+              schema:
+                $ref: '#/components/schemas/ByteStream'
+
+  /stream/input:
+    get:
+      description: Returns streams
+      parameters:
+      - $ref: '#/components/parameters/streamFormatParam'
+      operationId: getInput
+      responses:
+        '200':
+          description: streams
+          content:
+            text/tab-separated-values:
+              schema:
+                $ref: '#/components/schemas/InputStream'
+            text/csv:
+              schema:
+                $ref: '#/components/schemas/InputStream'
+            application/zip:
+              schema:
+                $ref: '#/components/schemas/InputStream'
+
+components:
+  parameters:
+    frequencyPath:
+      name: frequency
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Frequency'
+    offsetParam:
+      name: offset
+      in: query
+      required: false
+      schema:
+        type: integer
+    limitParam:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+    formatParam:
+      name: format
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/Format'
+    streamFormatParam:
+      name: format
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/StreamFormat'
+
+  schemas:
+    Frequency:
+      type: string
+      description: time unit
+      enum: [daily, monthly, yearly, weekly]
+    Format:
+      type: string
+      description: api response format
+      enum: [json, tsv, csv]
+      default: json
+    StreamFormat:
+      type: string
+      description: api response format
+      enum: [streamTsv, streamCsv, streamZip]
+      default: stream_csv
+    GenericError:
+      type: object
+      properties:
+        message:
+          type: string
+    ByteStream:
+      type: object
+      properties:
+        id:
+          type: string
+    InputStream:
+      type: object
+      properties:
+        id:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        birthday:
+          type: string
+          format: date
+        email:
+          type: string
+        password:
+          type: string
+        phone:
+          type: string
+        userStatus:
+          type: integer
+          description: User Status
+          format: int32
+    Book:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        price:
+          type: integer
+          format: int32
